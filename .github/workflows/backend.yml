@@ -22,7 +22,7 @@ jobs:
       run: cd ./Flash_queue_backend && go mod tidy
       
     - name: golangci-lint
-      run: http://github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.3
+      run: cd ./Flash_queue_backend http://github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.3
       
     - name: Run tests
       run: cd ./Flash_queue_backend && go test ./...
