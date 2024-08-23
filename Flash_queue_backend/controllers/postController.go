@@ -10,24 +10,39 @@ import (
 
 func CustomersCreate(c *gin.Context) {
 	// Get data off a req body
-	var body struct {
-		Name   string
-		Number string
+	var customer struct {
+		Name     string
+		Number   string
+		Position int
 	}
 
-	c.Bind(&body)
+	c.Bind(&customer)
 
-	// Create a post
-	customer := models.Customer{Name: body.Name, Number: body.Number}
-	result := initializers.DB.Create(&customer)
+	// Get the current maximum position
+	var maxPosition int
+	result := initializers.DB.Model(&models.Customer{}).Select("MAX(position)").Scan(&maxPosition)
 
-	if result.Error != nil {
+	// Determine the new position based on the current maximum
+	newPosition := 1
+	if result.Error == nil && maxPosition > 0 {
+		newPosition = maxPosition + 1
+	}
+
+	// Create a new customer with the new position
+	newCustomer := models.Customer{
+		Name:     customer.Name,
+		Number:   customer.Number,
+		Position: newPosition,
+	}
+	createResult := initializers.DB.Create(&newCustomer)
+
+	if createResult.Error != nil {
 		c.Status(400)
 		return
 	}
-	// Return it
+
 	c.JSON(200, gin.H{
-		"customer": customer,
+		"customer": newCustomer,
 	})
 }
 
@@ -85,8 +100,25 @@ func CustomerDelete(c *gin.Context) {
 	// Get the id off the url
 	id := c.Param("id")
 
-	// Delete the post
-	initializers.DB.Delete(&models.Customer{}, id)
+	// Find the customer to be deleted
+	var customer models.Customer
+	result := initializers.DB.First(&customer, id)
+	if result.Error != nil {
+		c.Status(404)
+		return
+	}
+
+	// Delete the customer
+	initializers.DB.Delete(&customer)
+
+	// Update the positions of all other customers
+	var customers []models.Customer
+	initializers.DB.Where("id <> ?", id).Order("position ASC").Find(&customers)
+
+	for i, c := range customers {
+		c.Position = i + 1
+		initializers.DB.Save(&c)
+	}
 
 	// Respond
 	c.Status(200)

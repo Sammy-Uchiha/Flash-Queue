@@ -9,6 +9,7 @@ import (
 func init() {
 	initializers.LoadEnvVariables()
 	initializers.ConnectToDB()
+	initializers.MirageteDB()
 }
 
 func main() {
