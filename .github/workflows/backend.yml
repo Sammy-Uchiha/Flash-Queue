@@ -7,28 +7,41 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-
+      
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
         go-version: '1.22.5' # Use the Go version you're using
 
     - name: Install dependencies
-      run: cd ./Flash_queue_backend && go mod tidy
+      run: |
+        cd ./Flash_queue_backend
+        go mod tidy
       
-    - name: golangci-lint
-      run: http://github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.3
+    - name: Install golangci-lint
+      run: |
+        go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.3
+        export PATH=$PATH:$(go env GOPATH)/bin
+      
+    - name: Run golangci-lint
+      run: |
+        cd ./Flash_queue_backend
+        golangci-lint run
       
     - name: Run tests
-      run: cd ./Flash_queue_backend && go test ./...
+      run: |
+        cd ./Flash_queue_backend
+        go test ./...
 
     - name: Build project
-      run:  cd ./Flash_queue_backend && go build -o Flash Queue
+      run: |
+        cd ./Flash_queue_backend
+        go build -o Flash_Queue
 
     - name: Deploy to Render
       env:
