@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu 24.04
+    runs-on: ubuntu-24.04
 
     steps:
     - name: Checkout code
@@ -20,7 +20,10 @@ jobs:
 
     - name: Install dependencies
       run: go mod tidy
-
+      
+    - name: golangci-lint
+      run: http://github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.3
+      
     - name: Run tests
       run: go test ./...
 
