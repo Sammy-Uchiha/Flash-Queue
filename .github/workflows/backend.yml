@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu 24.04
 
     steps:
     - name: Checkout code
@@ -25,7 +25,7 @@ jobs:
       run: go test ./...
 
     - name: Build project
-      run: go build -o app
+      run: go build -o Flash Queue
 
     - name: Deploy to Render
       env:
