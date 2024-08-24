@@ -24,7 +24,7 @@ jobs:
         go mod tidy
       
     - name: Install golangci-lint
-      run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.3 export PATH=$PATH:$(go env GOPATH)/bin
+      run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest export PATH=$PATH:$(go env GOPATH)/bin
       
     - name: Run golangci-lint
       run: |
