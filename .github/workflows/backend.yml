@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu 24.04
 
     steps:
     - name: Checkout code
@@ -41,7 +41,7 @@ jobs:
     - name: Build project
       run: |
         cd ./Flash_queue_backend
-        go build -o Flash_Queue
+        go build -o Flash_Queue_backend
 
     - name: Deploy to Render
       env:
