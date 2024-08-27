@@ -22,6 +22,39 @@ jobs:
       run: |
         cd ./Flash_queue_backend
         go mod tidy
+        
+    - name: Clean Up Docker
+      run: |
+        # Stop and remove any existing container using port 5432
+        EXISTING_CONTAINER=$(docker ps -q -f "publish=5432")
+        if [ -n "$EXISTING_CONTAINER" ]; then
+          echo "Stopping existing container $EXISTING_CONTAINER..."
+          docker stop $EXISTING_CONTAINER
+          echo "Removing existing container $EXISTING_CONTAINER..."
+          docker rm $EXISTING_CONTAINER
+        fi
+        # Clean up dangling Docker images and networks
+        docker system prune -f
+
+    - name: Run Postgres
+      run: |
+        docker run --name postgres16 -p 5432:5432 -e POSTGRES_USER=omala -e POSTGRES_PASSWORD=password -e POSTGRES_DB=omala -d postgres:16-alpine
+
+    - name: Wait for Postgres
+      run: |
+        until docker exec postgres16 pg_isready -h localhost -p 5432 -U omala; do
+          echo "Waiting for postgres..."
+          sleep 1
+        done
+
+    - name: Set Up Database
+      run: |
+        # Drop the database if it exists
+        docker exec postgres16 psql -U omala -d postgres -c "REVOKE CONNECT ON DATABASE omala FROM public;"
+        docker exec postgres16 psql -U omala -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = 'omala';"
+        docker exec postgres16 psql -U omala -d postgres -c "DROP DATABASE IF EXISTS omala;"
+        # Create the database
+        docker exec postgres16 createdb --username=omala --owner=omala omala
       
     - name: Install golangci-lint
       run: |
