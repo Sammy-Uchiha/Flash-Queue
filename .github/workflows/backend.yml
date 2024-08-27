@@ -46,16 +46,7 @@ jobs:
           echo "Waiting for postgres..."
           sleep 1
         done
-
-    - name: Set Up Database
-      run: |
-        # Drop the database if it exists
-        docker exec postgres16 psql -U omala -d postgres -c "REVOKE CONNECT ON DATABASE omala FROM public;"
-        docker exec postgres16 psql -U omala -d postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = 'omala';"
-        docker exec postgres16 psql -U omala -d postgres -c "DROP DATABASE IF EXISTS omala;"
-        # Create the database
-        docker exec postgres16 createdb --username=omala --owner=omala omala
-      
+        
     - name: Install golangci-lint
       run: |
         go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
@@ -78,6 +69,7 @@ jobs:
 
     - name: Deploy to Render
       env:
+        DB_CONNECT:  "host=localhost user=postgres password=admin@123 dbname=FlashQueue port=5432 sslmode=disable"
         RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
       run: |
         curl -X POST "https://api.render.com/v1/services/your-service-id/deploys" \
