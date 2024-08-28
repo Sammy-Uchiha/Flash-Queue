@@ -38,11 +38,11 @@ jobs:
 
     - name: Run Postgres
       run: |
-        docker run --name postgres16 -p 5432:5432 -e POSTGRES_USER=omala -e POSTGRES_PASSWORD=password -e POSTGRES_DB=omala -d postgres:16-alpine
+        docker run --name postgres16 -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=user%40123 -e POSTGRES_DB=Flash-Queue -d postgres:16-alpine
 
     - name: Wait for Postgres
       run: |
-        until docker exec postgres16 pg_isready -h localhost -p 5432 -U omala; do
+        until docker exec postgres16 pg_isready -h localhost -p 5432 -U Flash-Queue; do
           echo "Waiting for postgres..."
           sleep 1
         done
@@ -69,7 +69,7 @@ jobs:
 
     - name: Deploy to Render
       env:
-        DB_CONNECT:  "host=localhost user=postgres password=admin@123 dbname=FlashQueue port=5432 sslmode=disable"
+        DB_CONNECT:  "host=localhost user=postgres password=user%40123 dbname=Flash-Queue port=5432 sslmode=disable"
         RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
       run: |
         curl -X POST "https://api.render.com/v1/services/your-service-id/deploys" \
