@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/Flash_queue_backend/initializers"
@@ -16,7 +17,12 @@ func CustomersCreate(c *gin.Context) {
 		Position int
 	}
 
-	c.Bind(&customer)
+	if err := c.Bind(&customer); err != nil {
+		// Log the error message
+		fmt.Println("Error binding request body:", err)
+		c.JSON(400, gin.H{"error": "Invalid request data"})
+		return
+	}
 
 	// Get the current maximum position
 	var maxPosition int
