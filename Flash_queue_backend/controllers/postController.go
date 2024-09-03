@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/Flash_queue_backend/initializers"
 	"github.com/Flash_queue_backend/models"
@@ -103,31 +104,46 @@ func CustomerShow(c *gin.Context) {
 // }
 
 func CustomerDelete(c *gin.Context) {
-	// Get the id off the url
-	id := c.Param("id")
+	positionStr := c.Param("position")         // Get position as a string
+	position, err := strconv.Atoi(positionStr) // Convert to integer
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid position"})
+		return
+	}
 
-	// Find the customer to be deleted
 	var customer models.Customer
-	result := initializers.DB.First(&customer, id)
+
+	// Find the customer to be deleted by position
+	result := initializers.DB.Where("position = ?", position).First(&customer)
 	if result.Error != nil {
-		c.Status(404)
+		c.JSON(404, gin.H{"error": "Customer not found"})
 		return
 	}
 
 	// Delete the customer
-	initializers.DB.Delete(&customer)
+	if err := initializers.DB.Delete(&customer).Error; err != nil {
+		c.JSON(500, gin.H{"error": "Failed to delete customer"})
+		return
+	}
 
 	// Update the positions of all other customers
 	var customers []models.Customer
-	initializers.DB.Where("id <> ?", id).Order("position ASC").Find(&customers)
-
-	for i, c := range customers {
-		c.Position = i + 1
-		initializers.DB.Save(&c)
+	if err := initializers.DB.Where("position > ?", position).Order("position ASC").Find(&customers).Error; err != nil {
+		c.JSON(500, gin.H{"error": "Failed to retrieve remaining customers"})
+		return
 	}
 
-	// Respond
-	c.Status(200)
+	// Update positions
+	for i, cust := range customers {
+		cust.Position = position + i // Correctly adjust position based on the deleted customer's position
+		if err := initializers.DB.Save(&cust).Error; err != nil {
+			c.JSON(500, gin.H{"error": "Failed to update customer positions"})
+			return
+		}
+	}
+
+	// Respond with success message
+	c.JSON(200, gin.H{"message": "Customer deleted successfully"})
 }
 
 func CustomersStartPage(c *gin.Context) {
