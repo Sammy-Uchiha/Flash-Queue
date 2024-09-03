@@ -32,7 +32,7 @@ func main() {
 	// r.PUT("/customers/:id", controllers.CustomerUpdate)
 	r.GET("/customers", controllers.CustomersIndex)
 	r.GET("/customers/:id", controllers.CustomerShow)
-	r.DELETE("/customers/:id", controllers.CustomerDelete)
+	r.DELETE("/customers/delete/:position", controllers.CustomerDelete)
 	r.GET("/", controllers.CustomersStartPage)
 
 	err := r.Run()
